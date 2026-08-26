@@ -38,9 +38,12 @@
 
 - [ ] **Step 1: Scaffold into a temporary sibling directory**
 
+Run these from the project root (the directory containing this repo's `.git` — confirm with `git rev-parse --show-toplevel` first; do not assume a literal path, since this plan may run inside a worktree):
+
 ```bash
-cd /Users/vargast/Projects
-npm create vite@latest _paula_labs_scaffold -- --template react-ts
+PROJECT_ROOT="$(git rev-parse --show-toplevel)"
+SCAFFOLD_DIR="$(mktemp -d)/paula-labs-scaffold"
+npm create vite@latest "$SCAFFOLD_DIR" -- --template react-ts
 ```
 
 Expected: output ending in `Done. Now run:` with no interactive prompts (target dir didn't exist).
@@ -48,23 +51,28 @@ Expected: output ending in `Done. Now run:` with no interactive prompts (target 
 - [ ] **Step 2: Move generated files into the project root**
 
 ```bash
-cd /Users/vargast/Projects
-mv _paula_labs_scaffold/.gitignore paula-labs/.gitignore
-mv _paula_labs_scaffold/package.json paula-labs/package.json
-mv _paula_labs_scaffold/tsconfig.json paula-labs/tsconfig.json
-mv _paula_labs_scaffold/tsconfig.app.json paula-labs/tsconfig.app.json
-mv _paula_labs_scaffold/tsconfig.node.json paula-labs/tsconfig.node.json
-mv _paula_labs_scaffold/vite.config.ts paula-labs/vite.config.ts
-mv _paula_labs_scaffold/index.html paula-labs/index.html
-mv _paula_labs_scaffold/public paula-labs/public
-mv _paula_labs_scaffold/src paula-labs/src
-rm -rf _paula_labs_scaffold
+mv "$SCAFFOLD_DIR"/.gitignore "$PROJECT_ROOT"/.gitignore
+mv "$SCAFFOLD_DIR"/package.json "$PROJECT_ROOT"/package.json
+mv "$SCAFFOLD_DIR"/tsconfig.json "$PROJECT_ROOT"/tsconfig.json
+mv "$SCAFFOLD_DIR"/tsconfig.app.json "$PROJECT_ROOT"/tsconfig.app.json
+mv "$SCAFFOLD_DIR"/tsconfig.node.json "$PROJECT_ROOT"/tsconfig.node.json
+mv "$SCAFFOLD_DIR"/vite.config.ts "$PROJECT_ROOT"/vite.config.ts
+mv "$SCAFFOLD_DIR"/index.html "$PROJECT_ROOT"/index.html
+mv "$SCAFFOLD_DIR"/public "$PROJECT_ROOT"/public
+mv "$SCAFFOLD_DIR"/src "$PROJECT_ROOT"/src
+rm -rf "$(dirname "$SCAFFOLD_DIR")"
+```
+
+Note: `$PROJECT_ROOT` already has a `.gitignore` (created when the legacy site files were committed, containing `.claude/`) — the `mv` above overwrites it with the scaffold's version. Immediately after, re-add the `.claude/` line so worktree state stays ignored:
+
+```bash
+echo ".claude/" >> "$PROJECT_ROOT"/.gitignore
 ```
 
 - [ ] **Step 3: Remove the legacy entry HTML and move styles.css into src/**
 
 ```bash
-cd /Users/vargast/Projects/paula-labs
+cd "$PROJECT_ROOT"
 rm "Paula Labs.html"
 rm -rf src/assets src/App.css src/index.css
 mv styles.css src/styles.css
